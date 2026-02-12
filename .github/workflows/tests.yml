@@ -1,38 +1,27 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
-# Запускать при каждом пуше в ветку main
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  test-and-build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Стягиваем код из репозитория
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # 2. Устанавливаем Python
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
       with:
-        python-version: '3.11'
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # 3. Устанавливаем зависимости и запускаем линтер (проверка стиля)
-    - name: Install dependencies
-      run: |
-        pip install flake8
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Lint with flake8
-      run: |
-        # Остановит сборку, если есть синтаксические ошибки
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-
-    # 4. Пробуем собрать Docker-образ (проверка, что Dockerfile не сломан)
-    - name: Build Docker image
-      run: docker build -t my-app-test .
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        # Замените dresky2024 на ваш логин Docker Hub, если он другой
+        tags: xxnb22/my-devops-app:latest
