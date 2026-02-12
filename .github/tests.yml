@@ -1,0 +1,38 @@
+name: CI Pipeline
+
+# Запускать при каждом пуше в ветку main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Стягиваем код из репозитория
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 2. Устанавливаем Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    # 3. Устанавливаем зависимости и запускаем линтер (проверка стиля)
+    - name: Install dependencies
+      run: |
+        pip install flake8
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Lint with flake8
+      run: |
+        # Остановит сборку, если есть синтаксические ошибки
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    # 4. Пробуем собрать Docker-образ (проверка, что Dockerfile не сломан)
+    - name: Build Docker image
+      run: docker build -t my-app-test .

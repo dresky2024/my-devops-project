@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # Наше приложение
+  web:
+    build: .
+    ports:
+      - "8080:5000"
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
+
+  # База данных PostgreSQL
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: my_database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
